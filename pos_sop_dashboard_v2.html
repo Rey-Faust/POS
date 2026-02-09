@@ -1,0 +1,2897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Console V2</title>
+  <style>
+    :root {
+      --bg-base: #f4efe5;
+      --bg-surface: #fffaf1;
+      --bg-panel: #ffffff;
+      --text-main: #1f2933;
+      --text-sub: #52606d;
+      --line: #e9dfce;
+      --work: #9d3d2f;
+      --comm: #0f766e;
+      --sleep: #205295;
+      --accent: #8a6f43;
+      --ok: #2f855a;
+      --danger: #c53030;
+      --shadow-soft: 0 12px 30px rgba(58, 42, 22, 0.08);
+      --shadow-card: 0 6px 14px rgba(58, 42, 22, 0.06);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --font-main: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-display: "Iowan Old Style", "Songti SC", "STSong", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-main);
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 15% 10%, #f2d4b4 0%, transparent 30%),
+        radial-gradient(circle at 90% 90%, #d8ebe6 0%, transparent 34%),
+        linear-gradient(145deg, #f6f1e8, #f2ecdf);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      border: 1px solid #eadfce;
+      border-radius: 26px;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 12px 16px 10px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(120deg, rgba(157, 61, 47, 0.08), rgba(32, 82, 149, 0.08)),
+        #fff9f0;
+    }
+
+    .title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 22px;
+      letter-spacing: 0.15px;
+      font-weight: 700;
+    }
+
+    .purpose {
+      margin: 3px 0 0;
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.35;
+      max-width: 920px;
+      opacity: 0.85;
+    }
+
+    .head-row {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .layer-switch {
+      display: inline-flex;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+      background: #fff;
+    }
+
+    .layer-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .layer-btn.active {
+      background: #20262f;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(32, 38, 47, 0.25);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tool-btn {
+      border: 1px solid #d7cab5;
+      background: #fffdf8;
+      color: #664f2e;
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tool-btn:hover {
+      transform: translateY(-1px);
+      background: #fff8ec;
+    }
+
+    .tool-icon-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #e4d7c3;
+      border-radius: 50%;
+      background: #fffdf8;
+      color: #8a7350;
+      font-size: 13px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: 0.2s ease;
+    }
+
+    .tool-icon-btn:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    main {
+      padding: 18px;
+    }
+
+    .view {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sop-layout {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .sop-head-two-row {
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .sop-head-two-row .panel-title {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .sop-head-two-row .mode-filter {
+      padding: 0;
+      border: none;
+      background: transparent;
+      width: auto;
+      flex: 1 1 auto;
+      flex-wrap: nowrap;
+    }
+
+    .progress-wrap {
+      min-width: 180px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-sub);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #f1e8d9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #be5949, #8a6f43);
+      transition: width 0.25s ease;
+    }
+
+    .mode-filter {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #fffcf7;
+    }
+
+    .chip {
+      border: 1px solid #e7dac6;
+      background: #fff;
+      color: var(--text-sub);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip.active {
+      background: #2d3748;
+      border-color: #2d3748;
+      color: #fff;
+    }
+
+    .module-list {
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .module-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #ede1d0;
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      margin-bottom: 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fffdfa;
+      min-width: max-content;
+    }
+
+    .module-card:hover {
+      transform: translateY(-1px);
+      border-color: #d6c3aa;
+    }
+
+    .module-card.active {
+      border-width: 2px;
+      background: #ffffff;
+      box-shadow: 0 8px 18px rgba(58, 42, 22, 0.1);
+    }
+
+    .module-index {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .badge-work { background: var(--work); }
+    .badge-comm { background: var(--comm); }
+    .badge-sleep { background: var(--sleep); }
+
+    .module-name {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1px;
+      white-space: nowrap;
+    }
+
+    .module-meta {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--text-sub);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .module-progress {
+      margin-top: 8px;
+      width: 100%;
+      height: 5px;
+      background: #f0e5d3;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .module-card .module-meta,
+    .module-card .module-progress {
+      display: none;
+    }
+
+    .module-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #3a6d63;
+    }
+
+    .detail {
+      padding: 18px;
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: start;
+    }
+
+    .detail-title {
+      margin: 0;
+      font-size: 22px;
+      font-family: var(--font-display);
+    }
+
+    .detail-sub {
+      margin: 7px 0 0;
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .timer {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 8px;
+      min-width: 208px;
+      background: #fffdf8;
+    }
+
+    .timer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timer-clock {
+      font-family: "Menlo", "Consolas", monospace;
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0;
+      text-align: left;
+      color: #2d3748;
+      line-height: 1;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .timer-actions {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .timer-btn {
+      border: 1px solid #cdb99f;
+      background: #fff;
+      color: #5a4a30;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 6px 6px;
+      cursor: pointer;
+    }
+
+    .timer-btn.primary {
+      background: #2f4858;
+      color: #fff;
+      border-color: #2f4858;
+    }
+
+    .timer-mini-btn {
+      border: 1px solid #d8c4a7;
+      background: #fffefb;
+      color: #705836;
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .budget-mini {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      opacity: 0.68;
+    }
+
+    .budget-total {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1;
+      font-family: "Menlo", "Consolas", monospace;
+    }
+
+    .section {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      background: #fffdfa;
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #503d23;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .section-head .section-title {
+      margin: 0;
+    }
+
+    .section-action-btn {
+      border: 1px solid #d9c6aa;
+      background: #fffefb;
+      color: #715934;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 16px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .todo-node {
+      border: 1px solid #efe3d1;
+      border-radius: 10px;
+      background: #fff;
+      padding: 6px;
+    }
+
+    .todo-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+      padding: 4px 6px;
+      border-radius: 9px;
+    }
+
+    .todo-row.reflection {
+      background: #fff7ea;
+      border: 1px dashed #dcc6a7;
+      border-radius: 9px;
+    }
+
+    .todo-check {
+      width: 16px;
+      height: 16px;
+      accent-color: #2f855a;
+      cursor: pointer;
+    }
+
+    .todo-input {
+      border: none;
+      width: 100%;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text-main);
+      outline: none;
+      padding: 4px 0;
+      font-family: inherit;
+      line-height: 1.4;
+      min-height: 26px;
+      height: 26px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    textarea.todo-input {
+      resize: none;
+    }
+
+    .todo-row.done .todo-input {
+      text-decoration: line-through;
+      color: #8898a7;
+    }
+
+    .todo-main-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mini-action {
+      border: 1px solid #dac7aa;
+      background: #fffefb;
+      color: #725d3c;
+      border-radius: 7px;
+      font-size: 12px;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .todo-del {
+      border: none;
+      background: transparent;
+      color: #9da9b5;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 3px 5px;
+      border-radius: 6px;
+    }
+
+    .todo-del:hover {
+      background: #f5efe4;
+      color: var(--danger);
+    }
+
+    .sub-list {
+      margin-left: 26px;
+      margin-top: 6px;
+      border-left: 2px solid #efe2ce;
+      padding-left: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sub-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+      padding: 4px 6px;
+      border-radius: 8px;
+      background: #fffaf2;
+      border: 1px solid #f3e6d5;
+    }
+
+    .sub-row .todo-check {
+      width: 14px;
+      height: 14px;
+    }
+
+    .sub-row.done .todo-input {
+      text-decoration: line-through;
+      color: #9aa5b1;
+    }
+
+    .small-btn {
+      border: 1px dashed #ccb697;
+      background: #fff;
+      color: #715934;
+      border-radius: 8px;
+      font-size: 12px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    .dashboard-single {
+      display: block;
+    }
+
+    .dashboard-board {
+      padding: 16px;
+    }
+
+    .domain-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .domain-pick {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .domain-pick-btn {
+      border: 1px solid #decbb2;
+      background: #fff;
+      color: #6e5736;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .domain-pick-btn.active {
+      background: #2e3744;
+      color: #fff;
+      border-color: #2e3744;
+    }
+
+    .domain-focus {
+      border: 1px solid #e7d7c3;
+      border-radius: 12px;
+      background: #fffdf9;
+      overflow: hidden;
+    }
+
+    .domain-card {
+      border: 1px solid #eadcc8;
+      border-radius: var(--radius-md);
+      background: #fffdf9;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .domain-head {
+      padding: 12px;
+      border-bottom: 1px solid #eadcc8;
+      background: #fff8ee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .domain-name {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .domain-content {
+      padding: 12px;
+    }
+
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+
+    .label-row .label {
+      margin: 0;
+    }
+
+    .icon-round-btn {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #d9c7aa;
+      background: #fffefb;
+      color: #715934;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .fqa-item + .fqa-item {
+      margin-top: 8px;
+    }
+
+    .fqa-item-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .fqa-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .fqa-answer {
+      margin-top: 6px;
+    }
+
+    .sop-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .sop-file {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #6f7b87;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .text-input {
+      resize: none;
+      min-height: 34px;
+      height: 34px;
+      overflow: hidden;
+      line-height: 1.4;
+      font-family: inherit;
+    }
+
+    .detail-block + .detail-block {
+      margin-top: 14px;
+    }
+
+    .label {
+      margin: 0 0 7px;
+      font-size: 12px;
+      color: #7c6542;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .text-input {
+      width: 100%;
+      border: 1px solid #e7d8c3;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 14px;
+      outline: none;
+      background: #fffefb;
+      color: #1f2933;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .list-edit {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .line-edit {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .kpi-row.done .text-input {
+      text-decoration: line-through;
+      color: #8898a7;
+    }
+
+    .empty-note {
+      color: var(--text-sub);
+      font-size: 13px;
+      margin: 4px 0;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        padding: 12px;
+      }
+
+      .purpose {
+        display: none;
+      }
+
+      .sop-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sop-head-two-row {
+        padding: 12px;
+      }
+
+      .domain-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .domain-pick {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      .domain-pick-btn {
+        white-space: nowrap;
+      }
+
+      .timer {
+        min-width: 100%;
+      }
+
+      .timer-clock {
+        font-size: 30px;
+      }
+
+      textarea.todo-input,
+      textarea.text-input {
+        font-size: 16px;
+      }
+
+      .sop-row,
+      .fqa-item-head {
+        align-items: start;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="title">POS Console V2</h1>
+      <p class="purpose">
+        目标：低波动、可复盘、可长期积累。
+      </p>
+      <div class="head-row">
+        <div class="layer-switch" role="tablist" aria-label="POS Layers">
+          <button class="layer-btn active" id="layerSopBtn" type="button" onclick="switchLayer('sop')">SOP 执行层</button>
+          <button class="layer-btn" id="layerDashboardBtn" type="button" onclick="switchLayer('dashboard')">Dashboard 决策层</button>
+        </div>
+        <div class="toolbar">
+          <button class="tool-icon-btn" type="button" onclick="triggerImport()" title="导入 CSV/JSON" aria-label="导入 CSV/JSON">⤒</button>
+          <button class="tool-icon-btn" type="button" onclick="exportData()" title="导出 CSV" aria-label="导出 CSV">⤓</button>
+        </div>
+      </div>
+      <input id="importFileInput" type="file" accept=".csv,text/csv,application/json,.json" style="display:none" onchange="handleImportFile(event)">
+    </header>
+
+    <main>
+      <section class="view active" id="sopView">
+        <div class="sop-layout">
+          <aside class="panel">
+            <div class="panel-head sop-head-two-row">
+              <h2 class="panel-title">今日 SOP 流程</h2>
+              <div class="mode-filter" id="modeFilter"></div>
+            </div>
+            <div class="module-list" id="moduleList"></div>
+          </aside>
+
+          <section class="panel detail" id="moduleDetail"></section>
+        </div>
+      </section>
+
+      <section class="view" id="dashboardView">
+        <section class="panel dashboard-single">
+          <div class="panel-head">
+            <h2 class="panel-title">四大核心域与决策面板</h2>
+            <span class="hint">点选模块后维护 FQA、Principles、SOP与模版。</span>
+          </div>
+          <div class="dashboard-board">
+            <div class="domain-grid" id="domainGrid"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "pos_console_v2";
+    const MODE_LABEL = { work: "Work", comm: "Communication", sleep: "Sleep" };
+    const MODE_COLOR_CLASS = { work: "badge-work", comm: "badge-comm", sleep: "badge-sleep" };
+    const DOMAIN_ORDER = ["health", "cognition", "relationship", "wealth"];
+
+    const defaultState = {
+      layer: "sop",
+      modeFilter: "work",
+      activeModuleId: "wake",
+      dailyBudgetMinutes: 425,
+      modules: [
+        {
+          id: "wake",
+          order: 1,
+          mode: "sleep",
+          title: "Sleep 起床",
+          duration: 25,
+          intent: "拉起身体与注意力，为整天决策质量打底。",
+          reflection: "",
+          remainingSeconds: 25 * 60,
+          todos: [
+            { text: "开窗见光 5 分钟，喝 500ml 水", done: false },
+            { text: "3-5 分钟拉伸或轻度心率激活", done: false },
+            { text: "确认今天主目标与禁做事项", done: false }
+          ],
+          hint: "Sleep 模块以生理状态与节律稳定为主。"
+        },
+        {
+          id: "work-start",
+          order: 2,
+          mode: "work",
+          title: "Work 启动",
+          duration: 30,
+          intent: "在最短时间内进入可执行状态。",
+          reflection: "",
+          remainingSeconds: 30 * 60,
+          todos: [
+            { text: "整理桌面和数字环境，屏蔽干扰", done: false },
+            { text: "回看 Dashboard，明确今日最关键产出", done: false },
+            { text: "将任务拆为 1 个主任务 + 2 个次任务", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "deep-1",
+          order: 3,
+          mode: "work",
+          title: "Work 深度组1",
+          duration: 90,
+          intent: "优先推进最高杠杆主产出。",
+          reflection: "",
+          remainingSeconds: 90 * 60,
+          todos: [
+            { text: "先完成最难 20% 工作", done: false },
+            { text: "每 30 分钟检查是否偏离目标", done: false },
+            { text: "记录阻塞点并提出一个替代方案", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "comm-1",
+          order: 4,
+          mode: "comm",
+          title: "Comm 1",
+          duration: 25,
+          intent: "进行高价值沟通，而非信息堆积。",
+          reflection: "",
+          remainingSeconds: 25 * 60,
+          todos: [
+            { text: "选 1 个关键关系对象", done: false },
+            { text: "输出一次有价值触达（机会/资源/反馈）", done: false },
+            { text: "记录后续动作和截止日期", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "deep-2",
+          order: 5,
+          mode: "work",
+          title: "Work 深度组2",
+          duration: 90,
+          intent: "完成次级核心任务，减少任务债。",
+          reflection: "",
+          remainingSeconds: 90 * 60,
+          todos: [
+            { text: "推进次产出并形成可交付结果", done: false },
+            { text: "对流程进行 1 次微优化", done: false },
+            { text: "沉淀可复用模板或检查单", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "work-inbox",
+          order: 6,
+          mode: "work",
+          title: "Work Inbox",
+          duration: 30,
+          intent: "集中处理碎任务，避免侵蚀深度时间。",
+          reflection: "",
+          remainingSeconds: 30 * 60,
+          todos: [
+            { text: "统一处理短回复与临时请求", done: false },
+            { text: "判断可删除/可委派/可延期事项", done: false },
+            { text: "把需要深度的事项移入明日队列", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "comm-2",
+          order: 7,
+          mode: "comm",
+          title: "Comm 2",
+          duration: 25,
+          intent: "做一次关系深化动作，形成长期复利。",
+          reflection: "",
+          remainingSeconds: 25 * 60,
+          todos: [
+            { text: "复盘 Comm 1 是否产生价值交换", done: false },
+            { text: "发出 1 条高质量跟进信息", done: false },
+            { text: "更新关系状态与下一次触达时间", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "deep-3",
+          order: 8,
+          mode: "work",
+          title: "Work 深度组3",
+          duration: 60,
+          intent: "学习并升级系统能力，形成中长期收益。",
+          reflection: "",
+          remainingSeconds: 60 * 60,
+          todos: [
+            { text: "学习并讲解一个关键概念/模型", done: false },
+            { text: "把概念写入自己的流程系统", done: false },
+            { text: "定义明天可验证的应用场景", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "work-end",
+          order: 9,
+          mode: "work",
+          title: "Work 结束交接",
+          duration: 20,
+          intent: "完成交接与闭环，降低明日启动成本。",
+          reflection: "",
+          remainingSeconds: 20 * 60,
+          todos: [
+            { text: "更新账本/指标并记录关键数据", done: false },
+            { text: "写下明日启动清单（前 3 项）", done: false },
+            { text: "列出 1 个系统优化点", done: false }
+          ],
+          hint: ""
+        },
+        {
+          id: "bedtime",
+          order: 10,
+          mode: "sleep",
+          title: "Sleep 入睡",
+          duration: 30,
+          intent: "通过稳定入睡流程降低次日波动。",
+          reflection: "",
+          remainingSeconds: 30 * 60,
+          todos: [
+            { text: "远离手机与强刺激内容 30 分钟", done: false },
+            { text: "简单整理环境并完成洗漱", done: false },
+            { text: "呼吸放松 3 分钟后入睡", done: false }
+          ],
+          hint: "Sleep 模块默认只做执行与生理复位，非复杂反思。"
+        }
+      ],
+      dashboard: {
+        activeDomain: "health",
+        domains: {
+          health: {
+            name: "Health",
+            color: "#9d3d2f",
+            fqas: [
+              { question: "今天身体有力、头脑清醒、情绪稳定吗？", answer: "", expanded: false }
+            ],
+            principles: [
+              "优先级固定：睡眠 > 运动 > 放松 > 学习 > 工作",
+              "优先修复波动源，不带着透支做决策",
+              "每日最少一次主动恢复（呼吸/散步/拉伸）"
+            ],
+            sops: [
+              { text: "睡眠时长 ≥ 7.5h", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "运动 30-60 分钟", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "12:00-20:00 进食窗口", done: false, fileName: "", fileType: "", fileData: "" }
+            ]
+          },
+          cognition: {
+            name: "Cognition",
+            color: "#205295",
+            fqas: [
+              { question: "我是否在构建不断升级的大脑操作系统？", answer: "", expanded: false }
+            ],
+            principles: [
+              "先定义目标和约束，再发散与回归",
+              "找关键变量，避免信息过载",
+              "输出比输入更重要：学完要能讲明白"
+            ],
+            sops: [
+              { text: "完成 1 次结构化复盘", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "写出 1 个可复用决策模板", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "当天概念讲解 10 分钟", done: false, fileName: "", fileType: "", fileData: "" }
+            ]
+          },
+          relationship: {
+            name: "Relationship",
+            color: "#0f766e",
+            fqas: [
+              { question: "今天我是否对一位关键关系做了高质量联系？", answer: "", expanded: false }
+            ],
+            principles: [
+              "先提供价值，再提出请求",
+              "关系维护要可追踪：记录 -> 追踪 -> 加深",
+              "沟通追求清晰与长期信任，不追求短期好感"
+            ],
+            sops: [
+              { text: "高质量触达 >= 1 人", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "更新关系跟进记录", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "推动 1 次双向合作机会", done: false, fileName: "", fileType: "", fileData: "" }
+            ]
+          },
+          wealth: {
+            name: "Wealth",
+            color: "#8a6f43",
+            fqas: [
+              { question: "我是否在做预算充足且能提升自由度的事？", answer: "", expanded: false }
+            ],
+            principles: [
+              "清晰思考先于行动，避免冲动投入",
+              "不做时间或资金预算不足的项目",
+              "现金流、安全垫、长期积累三者并重"
+            ],
+            sops: [
+              { text: "当月现金流为正", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "储蓄率达到目标区间", done: false, fileName: "", fileType: "", fileData: "" },
+              { text: "资产配置按规则复盘", done: false, fileName: "", fileType: "", fileData: "" }
+            ]
+          }
+        }
+      }
+    };
+
+    let state = null;
+    let timerInterval = null;
+    let timerModuleId = null;
+    let autoGrowRefreshRaf = null;
+    let autoGrowViewportBound = false;
+
+    function clone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return clone(defaultState);
+      }
+      try {
+        const saved = JSON.parse(raw);
+        return mergeState(saved);
+      } catch (error) {
+        return clone(defaultState);
+      }
+    }
+
+    function mergeState(saved) {
+      const base = clone(defaultState);
+      if (!saved || typeof saved !== "object") {
+        return base;
+      }
+
+      if (saved.layer === "sop" || saved.layer === "dashboard") {
+        base.layer = saved.layer;
+      }
+      if (MODE_LABEL[saved.modeFilter]) {
+        base.modeFilter = saved.modeFilter;
+      }
+      if (typeof saved.activeModuleId === "string") {
+        base.activeModuleId = saved.activeModuleId;
+      }
+      if (Number.isFinite(saved.dailyBudgetMinutes) && saved.dailyBudgetMinutes > 0) {
+        base.dailyBudgetMinutes = Math.round(saved.dailyBudgetMinutes);
+      }
+
+      if (Array.isArray(saved.modules)) {
+        const savedMap = new Map(saved.modules.map((m) => [m.id, m]));
+        base.modules = base.modules.map((m) => {
+          const s = savedMap.get(m.id);
+          if (!s || typeof s !== "object") {
+            return {
+              ...m,
+              todos: m.todos.map((todo) => normalizeTodo(todo))
+            };
+          }
+          const todos = Array.isArray(s.todos) && s.todos.length
+            ? s.todos.map((todo) => normalizeTodo(todo))
+            : m.todos.map((todo) => normalizeTodo(todo));
+          const legacyReflection = typeof s.reflection === "string" ? s.reflection.trim() : "";
+          if (legacyReflection) {
+            todos.push({
+              text: `Reflection（可选）：${legacyReflection}`,
+              done: false,
+              subs: []
+            });
+          }
+          return {
+            ...m,
+            title: typeof s.title === "string" ? s.title : m.title,
+            duration: Number.isFinite(s.duration) && s.duration > 0 ? s.duration : m.duration,
+            intent: typeof s.intent === "string" ? s.intent : m.intent,
+            hint: typeof s.hint === "string" ? s.hint : m.hint,
+            remainingSeconds: Number.isFinite(s.remainingSeconds) && s.remainingSeconds >= 0
+              ? Math.floor(s.remainingSeconds)
+              : m.duration * 60,
+            todos
+          };
+        });
+      }
+
+      if (saved.dashboard && typeof saved.dashboard === "object") {
+        const savedDashboard = saved.dashboard;
+        if (DOMAIN_ORDER.includes(savedDashboard.activeDomain)) {
+          base.dashboard.activeDomain = savedDashboard.activeDomain;
+        }
+        if (savedDashboard.domains && typeof savedDashboard.domains === "object") {
+          DOMAIN_ORDER.forEach((key) => {
+            const domainBase = base.dashboard.domains[key];
+            const domainSaved = savedDashboard.domains[key];
+            if (!domainSaved || typeof domainSaved !== "object") {
+              return;
+            }
+            if (Array.isArray(domainSaved.principles) && domainSaved.principles.length) {
+              domainBase.principles = domainSaved.principles.map((line) =>
+                typeof line === "string" ? line : ""
+              );
+            }
+
+            if (Array.isArray(domainSaved.fqas) && domainSaved.fqas.length) {
+              domainBase.fqas = domainSaved.fqas.map((item) => normalizeFqa(item));
+            } else {
+              const legacyQuestion = typeof domainSaved.question === "string"
+                ? domainSaved.question
+                : (domainBase.fqas[0]?.question || "");
+              domainBase.fqas = [{ question: legacyQuestion, answer: "", expanded: false }];
+            }
+
+            if (Array.isArray(domainSaved.sops) && domainSaved.sops.length) {
+              domainBase.sops = domainSaved.sops.map((item) => normalizeSop(item));
+            } else if (Array.isArray(domainSaved.kpis) && domainSaved.kpis.length) {
+              domainBase.sops = domainSaved.kpis.map((item) => normalizeSop(item));
+            }
+          });
+        }
+      }
+
+      return base;
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function normalizeTodo(todo) {
+      const normalized = {
+        text: typeof todo?.text === "string" ? todo.text : "",
+        done: Boolean(todo?.done),
+        subs: []
+      };
+      if (Array.isArray(todo?.subs)) {
+        normalized.subs = todo.subs.map((sub) => ({
+          text: typeof sub?.text === "string" ? sub.text : "",
+          done: Boolean(sub?.done)
+        }));
+      }
+      return normalized;
+    }
+
+    function normalizeFqa(item) {
+      return {
+        question: typeof item?.question === "string" ? item.question : "",
+        answer: typeof item?.answer === "string" ? item.answer : "",
+        expanded: Boolean(item?.expanded)
+      };
+    }
+
+    function normalizeSop(item) {
+      return {
+        text: typeof item?.text === "string" ? item.text : "",
+        done: Boolean(item?.done),
+        fileName: typeof item?.fileName === "string" ? item.fileName : "",
+        fileType: typeof item?.fileType === "string" ? item.fileType : "",
+        fileData: typeof item?.fileData === "string" ? item.fileData : ""
+      };
+    }
+
+    function fitTextareaHeight(textarea) {
+      if (!textarea) {
+        return;
+      }
+      const minHeight = Number(textarea.dataset.minHeight || 26);
+      textarea.style.height = "0px";
+      textarea.style.height = `${Math.max(textarea.scrollHeight, minHeight)}px`;
+    }
+
+    function refreshAutoGrowTextareas() {
+      if (autoGrowRefreshRaf) {
+        cancelAnimationFrame(autoGrowRefreshRaf);
+      }
+      autoGrowRefreshRaf = requestAnimationFrame(() => {
+        autoGrowRefreshRaf = null;
+        document.querySelectorAll("textarea.todo-input, textarea.text-input").forEach((textarea) => {
+          fitTextareaHeight(textarea);
+        });
+      });
+    }
+
+    function bindAutoGrowViewportListeners() {
+      if (autoGrowViewportBound) {
+        return;
+      }
+      autoGrowViewportBound = true;
+      const onResize = () => refreshAutoGrowTextareas();
+      window.addEventListener("resize", onResize, { passive: true });
+      window.addEventListener("orientationchange", onResize, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", onResize, { passive: true });
+      }
+    }
+
+    function wireAutoGrow(textarea, minHeight = 26) {
+      if (!textarea) {
+        return;
+      }
+      textarea.dataset.minHeight = String(minHeight);
+      const fit = () => fitTextareaHeight(textarea);
+      fit();
+      requestAnimationFrame(fit);
+      setTimeout(fit, 0);
+      textarea.addEventListener("input", fit);
+      textarea.addEventListener("change", fit);
+      textarea.addEventListener("focus", fit);
+    }
+
+    function percent(value) {
+      return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
+    }
+
+    function moduleProgress(module) {
+      if (!module.todos.length) {
+        return 0;
+      }
+      let totalCount = 0;
+      let doneCount = 0;
+      module.todos.forEach((todo) => {
+        totalCount += 1;
+        if (todo.done) {
+          doneCount += 1;
+        }
+        if (Array.isArray(todo.subs)) {
+          totalCount += todo.subs.length;
+          doneCount += todo.subs.filter((sub) => sub.done).length;
+        }
+      });
+      if (!totalCount) {
+        return 0;
+      }
+      return (doneCount / totalCount) * 100;
+    }
+
+    function getVisibleModules() {
+      return state.modules.filter((m) => m.mode === state.modeFilter);
+    }
+
+    function getActiveModule() {
+      return state.modules.find((m) => m.id === state.activeModuleId) || null;
+    }
+
+    function ensureActiveModuleVisible() {
+      const visible = getVisibleModules();
+      if (!visible.length) {
+        state.activeModuleId = "";
+        return;
+      }
+      if (!visible.some((m) => m.id === state.activeModuleId)) {
+        state.activeModuleId = visible[0].id;
+      }
+    }
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60).toString().padStart(2, "0");
+      const sec = Math.floor(seconds % 60).toString().padStart(2, "0");
+      return `${min}:${sec}`;
+    }
+
+    function switchLayer(layer) {
+      state.layer = layer;
+      saveState();
+      renderLayer();
+    }
+
+    function encodeBase64Utf8(value) {
+      try {
+        const bytes = new TextEncoder().encode(String(value));
+        const chunkSize = 0x8000;
+        let binary = "";
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function decodeBase64Utf8(value) {
+      try {
+        const binary = atob(String(value));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function parseCsv(text) {
+      const content = String(text || "").replace(/^\uFEFF/, "");
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < content.length; i += 1) {
+        const ch = content[i];
+
+        if (ch === "\"") {
+          if (inQuotes && content[i + 1] === "\"") {
+            cell += "\"";
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+
+        if (!inQuotes && ch === ",") {
+          row.push(cell);
+          cell = "";
+          continue;
+        }
+
+        if (!inQuotes && (ch === "\n" || ch === "\r")) {
+          if (ch === "\r" && content[i + 1] === "\n") {
+            i += 1;
+          }
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+          continue;
+        }
+
+        cell += ch;
+      }
+
+      if (cell.length || row.length) {
+        row.push(cell);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function parseExtra(extra) {
+      const map = {};
+      if (typeof extra !== "string" || !extra.trim()) {
+        return map;
+      }
+      extra.split(";").forEach((part) => {
+        const idx = part.indexOf("=");
+        if (idx <= 0) {
+          return;
+        }
+        const key = part.slice(0, idx).trim();
+        const val = part.slice(idx + 1);
+        if (key) {
+          map[key] = val;
+        }
+      });
+      return map;
+    }
+
+    function parseDoneStatus(value) {
+      return String(value || "").trim().toLowerCase() === "done";
+    }
+
+    function importStateFromCsv(text) {
+      const rows = parseCsv(text);
+      if (!rows.length) {
+        throw new Error("empty_csv");
+      }
+
+      const snapshotRow = rows.find((row) => row[0] === "Meta" && row[1] === "StateSnapshot");
+      if (snapshotRow && snapshotRow[6]) {
+        const snapshotRaw = decodeBase64Utf8(snapshotRow[6]);
+        const snapshot = JSON.parse(snapshotRaw);
+        return mergeState(snapshot);
+      }
+
+      const next = clone(defaultState);
+      next.modules.forEach((module) => {
+        module.todos = [];
+        module.remainingSeconds = module.duration * 60;
+      });
+      DOMAIN_ORDER.forEach((key) => {
+        const domain = next.dashboard.domains[key];
+        domain.fqas = [];
+        domain.principles = [];
+        domain.sops = [];
+      });
+
+      const moduleById = new Map(next.modules.map((module) => [module.id, module]));
+      const moduleByTitle = new Map(next.modules.map((module) => [module.title, module]));
+      const domainByName = new Map(
+        DOMAIN_ORDER.map((key) => [next.dashboard.domains[key].name, key])
+      );
+
+      const getModule = (group, extra) => {
+        const extraMap = parseExtra(extra);
+        if (extraMap.id && moduleById.has(extraMap.id)) {
+          return moduleById.get(extraMap.id);
+        }
+        if (moduleByTitle.has(group)) {
+          return moduleByTitle.get(group);
+        }
+        return null;
+      };
+
+      const ensureTodo = (module, idx) => {
+        while (module.todos.length <= idx) {
+          module.todos.push({ text: "", done: false, subs: [] });
+        }
+        if (!Array.isArray(module.todos[idx].subs)) {
+          module.todos[idx].subs = [];
+        }
+        return module.todos[idx];
+      };
+
+      const ensureFqa = (domain, idx) => {
+        while (domain.fqas.length <= idx) {
+          domain.fqas.push({ question: "", answer: "", expanded: false });
+        }
+        return domain.fqas[idx];
+      };
+
+      const ensureTextLine = (list, idx) => {
+        while (list.length <= idx) {
+          list.push("");
+        }
+      };
+
+      const ensureSop = (domain, idx) => {
+        while (domain.sops.length <= idx) {
+          domain.sops.push({
+            text: "",
+            done: false,
+            fileName: "",
+            fileType: "",
+            fileData: ""
+          });
+        }
+        return domain.sops[idx];
+      };
+
+      for (let i = 1; i < rows.length; i += 1) {
+        const row = rows[i];
+        if (!row || !row.length) {
+          continue;
+        }
+        const section = row[0] || "";
+        const category = row[1] || "";
+        const group = row[2] || "";
+        const item = row[3] || "";
+        const subItem = row[4] || "";
+        const status = row[5] || "";
+        const value = row[6] || "";
+        const extra = row[7] || "";
+        const extraMap = parseExtra(extra);
+
+        if (section === "Meta" && category === "DailyBudgetMinutes") {
+          const budget = Number(value);
+          if (Number.isFinite(budget) && budget > 0) {
+            next.dailyBudgetMinutes = Math.round(budget);
+          }
+          continue;
+        }
+
+        if (section === "SOP") {
+          const module = getModule(group, extra);
+          if (!module) {
+            continue;
+          }
+
+          if (category === "Module") {
+            const duration = Number(value);
+            if (Number.isFinite(duration) && duration > 0) {
+              module.duration = Math.round(duration);
+            }
+            const remaining = Number(extraMap.remaining);
+            module.remainingSeconds = Number.isFinite(remaining) && remaining >= 0
+              ? Math.floor(remaining)
+              : module.duration * 60;
+            continue;
+          }
+
+          if (category === "Todo") {
+            const todoIdx = Math.max(0, Number(item) - 1);
+            const todo = ensureTodo(module, todoIdx);
+            todo.text = value;
+            todo.done = parseDoneStatus(status);
+            continue;
+          }
+
+          if (category === "SubTodo") {
+            const todoIdx = Math.max(0, Number(item) - 1);
+            const subIdx = Math.max(0, Number(subItem) - 1);
+            const todo = ensureTodo(module, todoIdx);
+            while (todo.subs.length <= subIdx) {
+              todo.subs.push({ text: "", done: false });
+            }
+            todo.subs[subIdx].text = value;
+            todo.subs[subIdx].done = parseDoneStatus(status);
+          }
+          continue;
+        }
+
+        if (section === "Dashboard") {
+          const key = extraMap.key || domainByName.get(group);
+          if (!key || !next.dashboard.domains[key]) {
+            continue;
+          }
+          const domain = next.dashboard.domains[key];
+          const idx = Math.max(0, Number(item) - 1);
+
+          if (category === "FQA") {
+            const target = ensureFqa(domain, idx);
+            if (subItem === "Q") {
+              target.question = value;
+            } else if (subItem === "A") {
+              target.answer = value;
+            }
+            continue;
+          }
+
+          if (category === "Principles") {
+            ensureTextLine(domain.principles, idx);
+            domain.principles[idx] = value;
+            continue;
+          }
+
+          if (category === "SOP与模版") {
+            const target = ensureSop(domain, idx);
+            target.text = value;
+            target.done = parseDoneStatus(status);
+            if (extraMap.fileNameB64) {
+              target.fileName = decodeBase64Utf8(extraMap.fileNameB64);
+            } else if (extraMap.fileName) {
+              target.fileName = extraMap.fileName;
+            }
+            if (extraMap.fileTypeB64) {
+              target.fileType = decodeBase64Utf8(extraMap.fileTypeB64);
+            } else if (extraMap.fileType) {
+              target.fileType = extraMap.fileType;
+            }
+            if (extraMap.fileDataB64) {
+              target.fileData = decodeBase64Utf8(extraMap.fileDataB64);
+            } else if (extraMap.fileData) {
+              target.fileData = extraMap.fileData;
+            } else if (row[7] && !extraMap.key) {
+              target.fileName = row[7];
+            }
+          }
+        }
+      }
+
+      return mergeState(next);
+    }
+
+    function applyImportedState(nextState) {
+      stopTimer();
+      state = mergeState(nextState);
+      ensureActiveModuleVisible();
+      saveState();
+      renderLayer();
+    }
+
+    function triggerImport() {
+      const input = document.getElementById("importFileInput");
+      if (!input) {
+        return;
+      }
+      input.value = "";
+      input.click();
+    }
+
+    function handleImportFile(event) {
+      const file = event.target?.files?.[0];
+      event.target.value = "";
+      if (!file) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const content = typeof reader.result === "string" ? reader.result : "";
+          if (!content.trim()) {
+            alert("导入失败：文件内容为空。");
+            return;
+          }
+          const lowerName = String(file.name || "").toLowerCase();
+          if (lowerName.endsWith(".json") || content.trim().startsWith("{")) {
+            const parsed = JSON.parse(content);
+            applyImportedState(parsed);
+            alert("导入成功：JSON 数据已恢复。");
+            return;
+          }
+          const imported = importStateFromCsv(content);
+          applyImportedState(imported);
+          alert("导入成功：CSV 数据已恢复。");
+        } catch (error) {
+          alert("导入失败：文件格式不正确或内容损坏。");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function setModeFilter(mode) {
+      state.modeFilter = mode;
+      ensureActiveModuleVisible();
+      stopTimer();
+      saveState();
+      renderSop();
+    }
+
+    function selectModule(moduleId) {
+      if (state.activeModuleId === moduleId) {
+        return;
+      }
+      state.activeModuleId = moduleId;
+      stopTimer();
+      saveState();
+      renderSop();
+    }
+
+    function renderLayer() {
+      const sop = state.layer === "sop";
+      document.getElementById("layerSopBtn").classList.toggle("active", sop);
+      document.getElementById("layerDashboardBtn").classList.toggle("active", !sop);
+      document.getElementById("sopView").classList.toggle("active", sop);
+      document.getElementById("dashboardView").classList.toggle("active", !sop);
+      document.title = sop ? "POS Console V2 - SOP 执行层" : "POS Console V2 - Dashboard 决策层";
+
+      if (sop) {
+        renderSop();
+      } else {
+        renderDashboard();
+      }
+    }
+
+    function renderSop() {
+      renderModeFilter();
+      renderModuleList();
+      renderModuleDetail();
+    }
+
+    function renderModeFilter() {
+      const container = document.getElementById("modeFilter");
+      container.innerHTML = "";
+      ["work", "comm", "sleep"].forEach((mode) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `chip ${state.modeFilter === mode ? "active" : ""}`;
+        btn.textContent = MODE_LABEL[mode];
+        btn.onclick = () => setModeFilter(mode);
+        container.appendChild(btn);
+      });
+    }
+
+    function renderModuleList() {
+      ensureActiveModuleVisible();
+      const list = document.getElementById("moduleList");
+      list.innerHTML = "";
+      const modules = getVisibleModules();
+
+      if (!modules.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-note";
+        empty.textContent = "当前筛选下没有模块。";
+        list.appendChild(empty);
+        return;
+      }
+
+      modules.forEach((module) => {
+        const card = document.createElement("article");
+        card.className = `module-card ${module.id === state.activeModuleId ? "active" : ""}`;
+        card.onclick = () => selectModule(module.id);
+
+        const index = document.createElement("div");
+        index.className = `module-index ${MODE_COLOR_CLASS[module.mode]}`;
+        index.textContent = module.order;
+
+        const info = document.createElement("div");
+        const title = document.createElement("h3");
+        title.className = "module-name";
+        title.textContent = module.title;
+
+        const meta = document.createElement("div");
+        meta.className = "module-meta";
+        const progressNum = Math.round(moduleProgress(module));
+        meta.innerHTML = `
+          <span>Mode: ${MODE_LABEL[module.mode]}</span>
+          <span>${module.duration} 分钟</span>
+          <span>${progressNum}% 完成</span>
+        `;
+
+        const progressWrap = document.createElement("div");
+        progressWrap.className = "module-progress";
+        const fill = document.createElement("div");
+        fill.className = "module-progress-fill";
+        fill.style.width = percent(moduleProgress(module));
+        progressWrap.appendChild(fill);
+
+        info.appendChild(title);
+        info.appendChild(meta);
+        info.appendChild(progressWrap);
+
+        card.appendChild(index);
+        card.appendChild(info);
+        list.appendChild(card);
+      });
+    }
+
+    function renderModuleDetail() {
+      const module = getActiveModule();
+      const container = document.getElementById("moduleDetail");
+      container.innerHTML = "";
+
+      if (!module) {
+        container.innerHTML = '<p class="empty-note">请选择一个模块。</p>';
+        return;
+      }
+
+      const runningThisModule = timerInterval && timerModuleId === module.id;
+
+      const head = document.createElement("div");
+      head.className = "detail-head";
+
+      const left = document.createElement("div");
+      const title = document.createElement("h2");
+      title.className = "detail-title";
+      title.textContent = module.title;
+      const sub = document.createElement("p");
+      sub.className = "detail-sub";
+      sub.textContent = `${module.intent} | ${MODE_LABEL[module.mode]}`;
+      left.appendChild(title);
+      left.appendChild(sub);
+
+      const timer = document.createElement("div");
+      timer.className = "timer";
+      const timerTop = document.createElement("div");
+      timerTop.className = "timer-top";
+      const clock = document.createElement("button");
+      clock.type = "button";
+      clock.id = "timerClock";
+      clock.className = "timer-clock";
+      clock.title = "点击修改计时时长（分钟）";
+      clock.textContent = formatTime(module.remainingSeconds);
+      clock.onclick = () => editModuleDuration(module.id);
+      const timerActions = document.createElement("div");
+      timerActions.className = "timer-actions";
+
+      const runBtn = document.createElement("button");
+      runBtn.type = "button";
+      runBtn.className = "timer-btn primary";
+      runBtn.textContent = runningThisModule ? "⏸" : "▶";
+      runBtn.onclick = toggleTimer;
+
+      const resetBtn = document.createElement("button");
+      resetBtn.type = "button";
+      resetBtn.className = "timer-btn";
+      resetBtn.textContent = "↺";
+      resetBtn.onclick = resetTimer;
+
+      timerActions.appendChild(runBtn);
+      timerActions.appendChild(resetBtn);
+
+      const budgetMini = document.createElement("div");
+      budgetMini.className = "budget-mini";
+      const budgetTotal = document.createElement("span");
+      budgetTotal.className = "budget-total";
+      budgetTotal.textContent = `${state.dailyBudgetMinutes}`;
+      const budgetSyncBtn = document.createElement("button");
+      budgetSyncBtn.type = "button";
+      budgetSyncBtn.className = "timer-mini-btn";
+      budgetSyncBtn.title = "按计时总和同步总预算";
+      budgetSyncBtn.textContent = "∑";
+      budgetSyncBtn.onclick = syncDailyBudgetToModules;
+      budgetMini.appendChild(budgetTotal);
+      budgetMini.appendChild(budgetSyncBtn);
+
+      timerTop.appendChild(clock);
+      timerTop.appendChild(budgetMini);
+      timer.appendChild(timerTop);
+      timer.appendChild(timerActions);
+
+      head.appendChild(left);
+      head.appendChild(timer);
+
+      const todoSection = document.createElement("section");
+      todoSection.className = "section";
+      const todoHead = document.createElement("div");
+      todoHead.className = "section-head";
+      const todoTitle = document.createElement("h3");
+      todoTitle.className = "section-title";
+      todoTitle.textContent = "SOP Todo List（支持二级 checklist）";
+      const addTodoBtn = document.createElement("button");
+      addTodoBtn.type = "button";
+      addTodoBtn.className = "section-action-btn";
+      addTodoBtn.title = "新增待办";
+      addTodoBtn.textContent = "+";
+      addTodoBtn.onclick = addTodo;
+      todoHead.appendChild(todoTitle);
+      todoHead.appendChild(addTodoBtn);
+      todoSection.appendChild(todoHead);
+
+      const todoList = document.createElement("div");
+      todoList.className = "todo-list";
+
+      module.todos.forEach((todo, idx) => {
+        const node = document.createElement("div");
+        node.className = "todo-node";
+
+        const row = document.createElement("div");
+        row.className = `todo-row ${todo.done ? "done" : ""} ${isReflectionTodo(todo) ? "reflection" : ""}`;
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "todo-check";
+        check.checked = todo.done;
+        check.onchange = () => toggleTodo(idx);
+
+        const input = document.createElement("textarea");
+        input.rows = 1;
+        input.className = "todo-input";
+        input.value = todo.text;
+        input.placeholder = isReflectionTodo(todo) ? "Reflection（可选）…" : "填写具体动作…";
+        input.onchange = (event) => updateTodoText(idx, event.target.value);
+        wireAutoGrow(input, 26);
+
+        const actions = document.createElement("div");
+        actions.className = "todo-main-actions";
+        const addSubBtn = document.createElement("button");
+        addSubBtn.type = "button";
+        addSubBtn.className = "mini-action";
+        addSubBtn.textContent = "↳";
+        addSubBtn.title = "新增二级项";
+        addSubBtn.onclick = () => addSubTodo(idx);
+
+        const reflectBtn = document.createElement("button");
+        reflectBtn.type = "button";
+        reflectBtn.className = "mini-action";
+        reflectBtn.textContent = "📝";
+        reflectBtn.title = "添加反思";
+        reflectBtn.onclick = () => addReflectionSubTodo(idx);
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "todo-del";
+        del.textContent = "🗑";
+        del.title = "删除任务";
+        del.onclick = () => deleteTodo(idx);
+
+        actions.appendChild(addSubBtn);
+        actions.appendChild(reflectBtn);
+        actions.appendChild(del);
+
+        row.appendChild(check);
+        row.appendChild(input);
+        row.appendChild(actions);
+        node.appendChild(row);
+
+        const subList = document.createElement("div");
+        subList.className = "sub-list";
+        const subItems = Array.isArray(todo.subs) ? todo.subs : [];
+        subItems.forEach((sub, subIdx) => {
+          const subRow = document.createElement("div");
+          subRow.className = `sub-row ${sub.done ? "done" : ""}`;
+
+          const subCheck = document.createElement("input");
+          subCheck.type = "checkbox";
+          subCheck.className = "todo-check";
+          subCheck.checked = sub.done;
+          subCheck.onchange = () => toggleSubTodo(idx, subIdx);
+
+          const subInput = document.createElement("textarea");
+          subInput.rows = 1;
+          subInput.className = "todo-input";
+          subInput.value = sub.text;
+          subInput.placeholder = "二级 checklist 项…";
+          subInput.onchange = (event) => updateSubTodoText(idx, subIdx, event.target.value);
+          wireAutoGrow(subInput, 26);
+
+          const subDel = document.createElement("button");
+          subDel.type = "button";
+          subDel.className = "todo-del";
+          subDel.textContent = "🗑";
+          subDel.title = "删除子项";
+          subDel.onclick = () => deleteSubTodo(idx, subIdx);
+
+          subRow.appendChild(subCheck);
+          subRow.appendChild(subInput);
+          subRow.appendChild(subDel);
+          subList.appendChild(subRow);
+        });
+
+        if (subItems.length) {
+          node.appendChild(subList);
+        }
+
+        todoList.appendChild(node);
+      });
+
+      todoSection.appendChild(todoList);
+      const reflectHint = document.createElement("p");
+      reflectHint.className = "hint";
+      reflectHint.textContent = "每条 checklist 可用“📝”添加反思子项；“↳”用于拆分执行细项。";
+      todoSection.appendChild(reflectHint);
+
+      container.appendChild(head);
+      container.appendChild(todoSection);
+      refreshAutoGrowTextareas();
+    }
+
+    function getTotalDurationMinutes() {
+      return state.modules.reduce((sum, module) => sum + module.duration, 0);
+    }
+
+    function setModuleDuration(moduleId, minutes) {
+      if (!Number.isFinite(minutes) || minutes <= 0) {
+        return;
+      }
+      const module = state.modules.find((item) => item.id === moduleId);
+      if (!module) {
+        return;
+      }
+      stopTimer();
+      const intMinutes = Math.round(minutes);
+      module.duration = intMinutes;
+      module.remainingSeconds = intMinutes * 60;
+      saveState();
+      renderSop();
+    }
+
+    function editModuleDuration(moduleId) {
+      const module = state.modules.find((item) => item.id === moduleId);
+      if (!module) {
+        return;
+      }
+      const input = window.prompt("设置该模块计时（分钟）", String(module.duration));
+      if (input === null) {
+        return;
+      }
+      const minutes = Number(input);
+      if (!Number.isFinite(minutes) || minutes <= 0) {
+        alert("请输入大于 0 的数字。");
+        return;
+      }
+      setModuleDuration(moduleId, minutes);
+    }
+
+    function syncDailyBudgetToModules() {
+      state.dailyBudgetMinutes = getTotalDurationMinutes();
+      saveState();
+      renderModuleDetail();
+    }
+
+    function toggleTodo(todoIndex) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex]) {
+        return;
+      }
+      module.todos[todoIndex].done = !module.todos[todoIndex].done;
+      saveState();
+      renderSop();
+    }
+
+    function updateTodoText(todoIndex, text) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex]) {
+        return;
+      }
+      module.todos[todoIndex].text = text;
+      saveState();
+    }
+
+    function deleteTodo(todoIndex) {
+      const module = getActiveModule();
+      if (!module) {
+        return;
+      }
+      module.todos.splice(todoIndex, 1);
+      saveState();
+      renderSop();
+    }
+
+    function addTodo() {
+      const module = getActiveModule();
+      if (!module) {
+        return;
+      }
+      module.todos.push({ text: "", done: false, subs: [] });
+      saveState();
+      renderSop();
+    }
+
+    function addSubTodo(todoIndex) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex]) {
+        return;
+      }
+      if (!Array.isArray(module.todos[todoIndex].subs)) {
+        module.todos[todoIndex].subs = [];
+      }
+      module.todos[todoIndex].subs.push({ text: "", done: false });
+      saveState();
+      renderSop();
+    }
+
+    function addReflectionSubTodo(todoIndex) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex]) {
+        return;
+      }
+      if (!Array.isArray(module.todos[todoIndex].subs)) {
+        module.todos[todoIndex].subs = [];
+      }
+      module.todos[todoIndex].subs.push({ text: "Reflection（可选）", done: false });
+      saveState();
+      renderSop();
+    }
+
+    function toggleSubTodo(todoIndex, subIndex) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex] || !module.todos[todoIndex].subs[subIndex]) {
+        return;
+      }
+      module.todos[todoIndex].subs[subIndex].done = !module.todos[todoIndex].subs[subIndex].done;
+      saveState();
+      renderSop();
+    }
+
+    function updateSubTodoText(todoIndex, subIndex, text) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex] || !module.todos[todoIndex].subs[subIndex]) {
+        return;
+      }
+      module.todos[todoIndex].subs[subIndex].text = text;
+      saveState();
+    }
+
+    function deleteSubTodo(todoIndex, subIndex) {
+      const module = getActiveModule();
+      if (!module || !module.todos[todoIndex] || !module.todos[todoIndex].subs[subIndex]) {
+        return;
+      }
+      module.todos[todoIndex].subs.splice(subIndex, 1);
+      saveState();
+      renderSop();
+    }
+
+    function isReflectionTodo(todo) {
+      if (!todo || typeof todo.text !== "string") {
+        return false;
+      }
+      return todo.text.trim().toLowerCase().startsWith("reflection");
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerModuleId = null;
+    }
+
+    function toggleTimer() {
+      const module = getActiveModule();
+      if (!module) {
+        return;
+      }
+
+      if (timerInterval && timerModuleId === module.id) {
+        stopTimer();
+        saveState();
+        renderModuleDetail();
+        return;
+      }
+
+      stopTimer();
+      timerModuleId = module.id;
+      timerInterval = setInterval(() => {
+        const active = state.modules.find((m) => m.id === timerModuleId);
+        if (!active) {
+          stopTimer();
+          return;
+        }
+        if (active.remainingSeconds > 0) {
+          active.remainingSeconds -= 1;
+          saveState();
+          if (state.activeModuleId === active.id) {
+            const clock = document.getElementById("timerClock");
+            if (clock) {
+              clock.textContent = formatTime(active.remainingSeconds);
+            }
+          }
+        }
+        if (active.remainingSeconds <= 0) {
+          active.remainingSeconds = 0;
+          saveState();
+          stopTimer();
+          renderModuleDetail();
+          alert(`模块「${active.title}」计时结束。`);
+        }
+      }, 1000);
+
+      renderModuleDetail();
+    }
+
+    function resetTimer() {
+      const module = getActiveModule();
+      if (!module) {
+        return;
+      }
+      stopTimer();
+      module.remainingSeconds = module.duration * 60;
+      saveState();
+      renderModuleDetail();
+    }
+
+    function renderDashboard() {
+      const grid = document.getElementById("domainGrid");
+      if (!grid) {
+        return;
+      }
+      grid.innerHTML = "";
+      const pick = document.createElement("div");
+      pick.className = "domain-pick";
+      DOMAIN_ORDER.forEach((key) => {
+        const domain = state.dashboard.domains[key];
+        if (!domain) {
+          return;
+        }
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `domain-pick-btn ${state.dashboard.activeDomain === key ? "active" : ""}`;
+        btn.textContent = domain.name;
+        btn.onclick = () => selectDomain(key);
+        pick.appendChild(btn);
+      });
+
+      const activeKey = DOMAIN_ORDER.includes(state.dashboard.activeDomain)
+        ? state.dashboard.activeDomain
+        : DOMAIN_ORDER[0];
+      const activeDomain = state.dashboard.domains[activeKey];
+      if (!activeDomain) {
+        grid.appendChild(pick);
+        return;
+      }
+
+      const focus = document.createElement("div");
+      focus.className = "domain-focus";
+
+      const card = document.createElement("article");
+      card.className = "domain-card";
+      card.style.borderLeft = `4px solid ${activeDomain.color}`;
+
+      const head = document.createElement("div");
+      head.className = "domain-head";
+      const name = document.createElement("h3");
+      name.className = "domain-name";
+      name.style.color = activeDomain.color;
+      name.textContent = activeDomain.name;
+      head.appendChild(name);
+
+      const content = document.createElement("div");
+      content.className = "domain-content";
+
+      const fqaBlock = document.createElement("div");
+      fqaBlock.className = "detail-block";
+      const fqaLabelRow = document.createElement("div");
+      fqaLabelRow.className = "label-row";
+      fqaLabelRow.innerHTML = '<p class="label">FQA</p>';
+      const addFqaBtn = document.createElement("button");
+      addFqaBtn.type = "button";
+      addFqaBtn.className = "icon-round-btn";
+      addFqaBtn.textContent = "+";
+      addFqaBtn.title = "新增 FQA";
+      addFqaBtn.onclick = () => addFqa(activeKey);
+      fqaLabelRow.appendChild(addFqaBtn);
+      fqaBlock.appendChild(fqaLabelRow);
+
+      const fqaList = document.createElement("div");
+      fqaList.className = "list-edit";
+      activeDomain.fqas.forEach((item, idx) => {
+        const fqaItem = document.createElement("div");
+        fqaItem.className = "fqa-item";
+        const fqaHead = document.createElement("div");
+        fqaHead.className = "fqa-item-head";
+        const qArea = document.createElement("textarea");
+        qArea.className = "text-input";
+        qArea.rows = 1;
+        qArea.placeholder = "问题...";
+        qArea.value = item.question;
+        qArea.onchange = (event) => updateFqaQuestion(activeKey, idx, event.target.value);
+        wireAutoGrow(qArea, 34);
+        const actions = document.createElement("div");
+        actions.className = "fqa-actions";
+        const answerBtn = document.createElement("button");
+        answerBtn.type = "button";
+        answerBtn.className = "icon-round-btn";
+        answerBtn.textContent = "💬";
+        answerBtn.title = "回答";
+        answerBtn.onclick = () => toggleFqaAnswer(activeKey, idx);
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "todo-del";
+        delBtn.textContent = "🗑";
+        delBtn.title = "删除 FQA";
+        delBtn.onclick = () => deleteFqa(activeKey, idx);
+        actions.appendChild(answerBtn);
+        actions.appendChild(delBtn);
+        fqaHead.appendChild(qArea);
+        fqaHead.appendChild(actions);
+        fqaItem.appendChild(fqaHead);
+
+        if (item.expanded || item.answer) {
+          const answerWrap = document.createElement("div");
+          answerWrap.className = "fqa-answer";
+          const answerArea = document.createElement("textarea");
+          answerArea.className = "text-input";
+          answerArea.rows = 1;
+          answerArea.placeholder = "回答...";
+          answerArea.value = item.answer;
+          answerArea.onchange = (event) => updateFqaAnswer(activeKey, idx, event.target.value);
+          wireAutoGrow(answerArea, 34);
+          answerWrap.appendChild(answerArea);
+          fqaItem.appendChild(answerWrap);
+        }
+
+        fqaList.appendChild(fqaItem);
+      });
+      fqaBlock.appendChild(fqaList);
+
+      const principlesBlock = document.createElement("div");
+      principlesBlock.className = "detail-block";
+      const pLabelRow = document.createElement("div");
+      pLabelRow.className = "label-row";
+      pLabelRow.innerHTML = '<p class="label">Principles</p>';
+      const addPrincipleBtn = document.createElement("button");
+      addPrincipleBtn.type = "button";
+      addPrincipleBtn.className = "icon-round-btn";
+      addPrincipleBtn.textContent = "+";
+      addPrincipleBtn.title = "新增 Principle";
+      addPrincipleBtn.onclick = () => addPrinciple(activeKey);
+      pLabelRow.appendChild(addPrincipleBtn);
+      principlesBlock.appendChild(pLabelRow);
+      const principlesList = document.createElement("div");
+      principlesList.className = "list-edit";
+      activeDomain.principles.forEach((line, idx) => {
+        const row = document.createElement("div");
+        row.className = "line-edit";
+        const input = document.createElement("textarea");
+        input.className = "text-input";
+        input.rows = 1;
+        input.value = line;
+        input.onchange = (event) => updatePrinciple(activeKey, idx, event.target.value);
+        wireAutoGrow(input, 34);
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "todo-del";
+        del.textContent = "🗑";
+        del.title = "删除 Principle";
+        del.onclick = () => deletePrinciple(activeKey, idx);
+        row.appendChild(input);
+        row.appendChild(del);
+        principlesList.appendChild(row);
+      });
+      principlesBlock.appendChild(principlesList);
+
+      const sopBlock = document.createElement("div");
+      sopBlock.className = "detail-block";
+      const sLabelRow = document.createElement("div");
+      sLabelRow.className = "label-row";
+      sLabelRow.innerHTML = '<p class="label">SOP与模版</p>';
+      const addSopBtn = document.createElement("button");
+      addSopBtn.type = "button";
+      addSopBtn.className = "icon-round-btn";
+      addSopBtn.textContent = "+";
+      addSopBtn.title = "新增 SOP/模版";
+      addSopBtn.onclick = () => addSop(activeKey);
+      sLabelRow.appendChild(addSopBtn);
+      sopBlock.appendChild(sLabelRow);
+
+      const sopList = document.createElement("div");
+      sopList.className = "list-edit";
+      activeDomain.sops.forEach((item, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "fqa-item";
+        const row = document.createElement("div");
+        row.className = "sop-row";
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "todo-check";
+        check.checked = item.done;
+        check.onchange = () => toggleSop(activeKey, idx);
+        const text = document.createElement("textarea");
+        text.className = "text-input";
+        text.rows = 1;
+        text.placeholder = "填写 SOP 或模版说明...";
+        text.value = item.text;
+        text.onchange = (event) => updateSopText(activeKey, idx, event.target.value);
+        wireAutoGrow(text, 34);
+        const actions = document.createElement("div");
+        actions.className = "fqa-actions";
+        const attachBtn = document.createElement("button");
+        attachBtn.type = "button";
+        attachBtn.className = "icon-round-btn";
+        attachBtn.textContent = "📎";
+        attachBtn.title = "添加文件";
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.style.display = "none";
+        fileInput.onchange = (event) => handleSopFileSelect(activeKey, idx, event);
+        attachBtn.onclick = () => fileInput.click();
+        const downBtn = document.createElement("button");
+        downBtn.type = "button";
+        downBtn.className = "icon-round-btn";
+        downBtn.textContent = "⤓";
+        downBtn.title = "下载文件";
+        downBtn.disabled = !item.fileData;
+        downBtn.onclick = () => downloadSopFile(activeKey, idx);
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "todo-del";
+        del.textContent = "🗑";
+        del.title = "删除条目";
+        del.onclick = () => deleteSop(activeKey, idx);
+        actions.appendChild(attachBtn);
+        actions.appendChild(downBtn);
+        actions.appendChild(del);
+        row.appendChild(check);
+        row.appendChild(text);
+        row.appendChild(actions);
+        wrap.appendChild(row);
+        wrap.appendChild(fileInput);
+        if (item.fileName) {
+          const fileMeta = document.createElement("div");
+          fileMeta.className = "sop-file";
+          fileMeta.textContent = `文件：${item.fileName}`;
+          wrap.appendChild(fileMeta);
+        }
+        sopList.appendChild(wrap);
+      });
+      sopBlock.appendChild(sopList);
+
+      content.appendChild(fqaBlock);
+      content.appendChild(principlesBlock);
+      content.appendChild(sopBlock);
+
+      card.appendChild(head);
+      card.appendChild(content);
+      focus.appendChild(card);
+
+      grid.appendChild(pick);
+      grid.appendChild(focus);
+      refreshAutoGrowTextareas();
+    }
+
+    function selectDomain(key) {
+      if (!DOMAIN_ORDER.includes(key)) {
+        return;
+      }
+      state.dashboard.activeDomain = key;
+      saveState();
+      renderDashboard();
+    }
+
+    function addFqa(key) {
+      const domain = state.dashboard.domains[key];
+      if (!domain) {
+        return;
+      }
+      domain.fqas.push({ question: "", answer: "", expanded: false });
+      saveState();
+      renderDashboard();
+    }
+
+    function updateFqaQuestion(key, idx, value) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.fqas[idx]) {
+        return;
+      }
+      domain.fqas[idx].question = value;
+      saveState();
+    }
+
+    function updateFqaAnswer(key, idx, value) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.fqas[idx]) {
+        return;
+      }
+      domain.fqas[idx].answer = value;
+      saveState();
+    }
+
+    function toggleFqaAnswer(key, idx) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.fqas[idx]) {
+        return;
+      }
+      domain.fqas[idx].expanded = !domain.fqas[idx].expanded;
+      saveState();
+      renderDashboard();
+    }
+
+    function deleteFqa(key, idx) {
+      const domain = state.dashboard.domains[key];
+      if (!domain) {
+        return;
+      }
+      domain.fqas.splice(idx, 1);
+      saveState();
+      renderDashboard();
+    }
+
+    function addPrinciple(key) {
+      const domain = state.dashboard.domains[key];
+      if (!domain) {
+        return;
+      }
+      domain.principles.push("");
+      saveState();
+      renderDashboard();
+    }
+
+    function updatePrinciple(key, idx, value) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || typeof domain.principles[idx] !== "string") {
+        return;
+      }
+      domain.principles[idx] = value;
+      saveState();
+    }
+
+    function deletePrinciple(key, idx) {
+      const domain = state.dashboard.domains[key];
+      if (!domain) {
+        return;
+      }
+      domain.principles.splice(idx, 1);
+      saveState();
+      renderDashboard();
+    }
+
+    function addSop(key) {
+      const domain = state.dashboard.domains[key];
+      if (!domain) {
+        return;
+      }
+      domain.sops.push({ text: "", done: false, fileName: "", fileType: "", fileData: "" });
+      saveState();
+      renderDashboard();
+    }
+
+    function updateSopText(key, idx, value) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.sops[idx]) {
+        return;
+      }
+      domain.sops[idx].text = value;
+      saveState();
+    }
+
+    function toggleSop(key, idx) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.sops[idx]) {
+        return;
+      }
+      domain.sops[idx].done = !domain.sops[idx].done;
+      saveState();
+      renderDashboard();
+    }
+
+    function deleteSop(key, idx) {
+      const domain = state.dashboard.domains[key];
+      if (!domain) {
+        return;
+      }
+      domain.sops.splice(idx, 1);
+      saveState();
+      renderDashboard();
+    }
+
+    function handleSopFileSelect(key, idx, event) {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        alert("文件过大，请选择 2MB 以内文件。");
+        event.target.value = "";
+        return;
+      }
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.sops[idx]) {
+        event.target.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        domain.sops[idx].fileName = file.name;
+        domain.sops[idx].fileType = file.type || "";
+        domain.sops[idx].fileData = typeof reader.result === "string" ? reader.result : "";
+        saveState();
+        renderDashboard();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = "";
+    }
+
+    function downloadSopFile(key, idx) {
+      const domain = state.dashboard.domains[key];
+      if (!domain || !domain.sops[idx] || !domain.sops[idx].fileData) {
+        return;
+      }
+      const item = domain.sops[idx];
+      const a = document.createElement("a");
+      a.href = item.fileData;
+      a.download = item.fileName || `sop-file-${idx + 1}`;
+      a.click();
+    }
+
+    function exportData() {
+      const now = new Date();
+      const stamp = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0"),
+        String(now.getHours()).padStart(2, "0"),
+        String(now.getMinutes()).padStart(2, "0")
+      ].join("");
+      const csvEscape = (value) => {
+        const str = value == null ? "" : String(value);
+        return `"${str.replace(/"/g, "\"\"")}"`;
+      };
+
+      const rows = [];
+      rows.push([
+        "Section",
+        "Category",
+        "Group",
+        "Item",
+        "SubItem",
+        "Status",
+        "Value",
+        "Extra"
+      ]);
+
+      rows.push(["Meta", "DailyBudgetMinutes", "", "", "", "", state.dailyBudgetMinutes, ""]);
+      rows.push([
+        "Meta",
+        "StateSnapshot",
+        "",
+        "",
+        "",
+        "",
+        encodeBase64Utf8(JSON.stringify(state)),
+        "format=base64json"
+      ]);
+
+      state.modules.forEach((module) => {
+        rows.push([
+          "SOP",
+          "Module",
+          module.title,
+          "Timer",
+          "",
+          "",
+          module.duration,
+          `id=${module.id};remaining=${module.remainingSeconds}`
+        ]);
+
+        module.todos.forEach((todo, todoIdx) => {
+          rows.push([
+            "SOP",
+            "Todo",
+            module.title,
+            `${todoIdx + 1}`,
+            "",
+            todo.done ? "done" : "pending",
+            todo.text,
+            `id=${module.id}`
+          ]);
+          (todo.subs || []).forEach((sub, subIdx) => {
+            rows.push([
+              "SOP",
+              "SubTodo",
+              module.title,
+              `${todoIdx + 1}`,
+              `${subIdx + 1}`,
+              sub.done ? "done" : "pending",
+              sub.text,
+              `id=${module.id}`
+            ]);
+          });
+        });
+      });
+
+      DOMAIN_ORDER.forEach((key) => {
+        const domain = state.dashboard.domains[key];
+        if (!domain) {
+          return;
+        }
+        (domain.fqas || []).forEach((item, idx) => {
+          rows.push([
+            "Dashboard",
+            "FQA",
+            domain.name,
+            `${idx + 1}`,
+            "Q",
+            "",
+            item.question,
+            `key=${key}`
+          ]);
+          rows.push([
+            "Dashboard",
+            "FQA",
+            domain.name,
+            `${idx + 1}`,
+            "A",
+            "",
+            item.answer,
+            `key=${key}`
+          ]);
+        });
+
+        (domain.principles || []).forEach((line, idx) => {
+          rows.push([
+            "Dashboard",
+            "Principles",
+            domain.name,
+            `${idx + 1}`,
+            "",
+            "",
+            line,
+            `key=${key}`
+          ]);
+        });
+
+        (domain.sops || []).forEach((item, idx) => {
+          const sopExtra = [
+            `key=${key}`,
+            item.fileName ? `fileNameB64=${encodeBase64Utf8(item.fileName)}` : "",
+            item.fileType ? `fileTypeB64=${encodeBase64Utf8(item.fileType)}` : "",
+            item.fileData ? `fileDataB64=${encodeBase64Utf8(item.fileData)}` : ""
+          ].filter(Boolean).join(";");
+          rows.push([
+            "Dashboard",
+            "SOP与模版",
+            domain.name,
+            `${idx + 1}`,
+            "",
+            item.done ? "done" : "pending",
+            item.text,
+            sopExtra
+          ]);
+        });
+      });
+
+      const csv = "\ufeff" + rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `pos-console-export-${stamp}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    window.addEventListener("beforeunload", () => {
+      stopTimer();
+    });
+
+    function init() {
+      state = loadState();
+      bindAutoGrowViewportListeners();
+      ensureActiveModuleVisible();
+      if (!DOMAIN_ORDER.includes(state.dashboard.activeDomain)) {
+        state.dashboard.activeDomain = DOMAIN_ORDER[0];
+      }
+      renderLayer();
+    }
+
+    init();
+  </script>
+</body>
+</html>
